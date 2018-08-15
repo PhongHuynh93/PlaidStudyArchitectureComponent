@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<example.test.phong.plaidstudy.ui.widget.BaselineGridTextView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:selectableItemBackground"
+    android:elevation="1dp"
+    android:padding="@dimen/spacing_normal"
+    android:paddingTop="@dimen/spacing_normal"
+    android:textAlignment="center"
+    android:textAppearance="@style/TextAppearance.EmptyText"/>
+
