@@ -1,4 +1,4 @@
-package example.test.phong.plaidstudy.ui.widget;
+package example.test.phong.core.ui.widget;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -8,7 +8,7 @@ import android.util.TypedValue;
 
 import androidx.annotation.FontRes;
 import androidx.appcompat.widget.AppCompatTextView;
-import example.test.phong.plaidstudy.R;
+import example.test.phong.core.R;
 
 public class BaselineGridTextView extends AppCompatTextView {
     private float FOUR_DIP;

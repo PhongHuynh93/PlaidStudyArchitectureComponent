@@ -16,7 +16,7 @@
         android:padding="@dimen/spacing_micro"
         android:src="@drawable/filter_placeholder" />
 
-    <example.test.phong.plaidstudy.ui.widget.BaselineGridTextView
+    <example.test.phong.core.ui.widget.BaselineGridTextView
         android:id="@+id/filter_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
