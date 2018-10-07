@@ -44,6 +44,8 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha4'
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:${versions.coroutines}"
 
     // For dagger 2
     api "com.google.dagger:dagger:${versions.dagger_version}"

@@ -17,8 +17,9 @@ open class Source(val key: String, val sortOrder: Int, val name: String, @Drawab
 }
 
 open class DribbbleSource(key: String, sortOrder: Int, name: String, active: Boolean) : Source(key, sortOrder, name, R.drawable.ic_dribbble, active)
-class DribbbleSearchSource(query: String, active: Boolean)
+class DribbbleSearchSource(val query: String, active: Boolean)
     : DribbbleSource(query + DRIBBBLE_QUERY_PREFIX, SEARCH_SORT_ORDER, "\"" + query + "\"", active) {
+
     companion object {
         val DRIBBBLE_QUERY_PREFIX = "DRIBBBLE_QUERY_"
         val SEARCH_SORT_ORDER = 400

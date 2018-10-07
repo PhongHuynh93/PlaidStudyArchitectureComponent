@@ -4,9 +4,9 @@ interface DataLoadingSubject {
     fun isDataLoading(): Boolean
     fun registerCallback(callbacks: DataLoadingCallbacks)
     fun unregisterCallback(callbacks: DataLoadingCallbacks)
+}
 
-    interface DataLoadingCallbacks {
-        fun dataStartedLoading()
-        fun dataFinishedLoading()
-    }
+interface DataLoadingCallbacks {
+    fun dataStartedLoading()
+    fun dataFinishedLoading()
 }

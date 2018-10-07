@@ -1,8 +1,8 @@
 package example.test.phong.core.data
 
-import android.content.Context
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.OnLifecycleEvent
 import example.test.phong.core.data.prefs.SourceManager
 import example.test.phong.core.designernews.domain.LoadStoriesUseCase
@@ -12,13 +12,17 @@ import example.test.phong.core.ui.FilterAdapter
 import retrofit2.Call
 import javax.inject.Inject
 
-class DataManager @Inject constructor(context: Context, val filterAdapter: FilterAdapter,
-                  private val shotsRepository: ShotsReposity,
-                  private val loadStoriesUseCase: LoadStoriesUseCase,
-                  private val searchStoriesUseCase: SearchStoriesUseCase,
-                  private val productHuntRepository: ProductHuntRepository): BaseDataManager<List<out PlaidItem>>(), LoadSourceCallback, LifecycleObserver {
+class DataManager @Inject constructor(
+        private val filterAdapter: FilterAdapter,
+        private val shotsRepository: ShotsReposity,
+        private val loadStoriesUseCase: LoadStoriesUseCase,
+        private val searchStoriesUseCase: SearchStoriesUseCase,
+        private val productHuntRepository: ProductHuntRepository) : BaseDataManager<List<out PlaidItem>>(), LoadSourceCallback, LifecycleObserver {
     private lateinit var pageIndexes: MutableMap<String, Int>
-    private var inflightCalls: MutableMap<String, Call<*>>  = HashMap()
+    private var inflightCalls: MutableMap<String, Call<*>> = HashMap()
+    val remoteData by lazy {
+        MutableLiveData<List<PlaidItem>>()
+    }
 
     init {
         setupPageIndexes()
@@ -36,29 +40,32 @@ class DataManager @Inject constructor(context: Context, val filterAdapter: Filte
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun registerCallback(callbacks: DataLoadingSubject.DataLoadingCallbacks) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun sourceLoaded(data: List<PlaidItem>?, page: Int, source: String) {
+        loadFinished()
+        if (data?.isNotEmpty() == true && sourceIsEnabled(source)) {
+            setPage(data, page)
+            setDataSource(data, source)
+            onDataLoaded(data)
+        }
+        inflightCalls.remove(source)
     }
 
-    override fun unregisterCallback(callbacks: DataLoadingSubject.DataLoadingCallbacks) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun onDataLoaded(data: List<PlaidItem>) {
+        remoteData.postValue(data)
     }
 
-    override fun sourceLoaded(result: List<PlaidItem>?, page: Int, source: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    private fun sourceIsEnabled(key: String): Boolean {
+        return pageIndexes[key] != 0
     }
 
     override fun loadFailed(source: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun loadAllDataSources() {
         for (filter in filterAdapter.filters) {
             loadSource(filter)
         }
     }
-
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     override fun cancelLoading() {
@@ -100,27 +107,30 @@ class DataManager @Inject constructor(context: Context, val filterAdapter: Filte
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    private fun loadDribbbleSearch(source: DribbbleSearchSource, page: Any) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    private fun loadDribbbleSearch(source: DribbbleSearchSource, page: Int) {
+        shotsRepository.search(source.query, page, onResult = { result ->
+            if (result is Result.Success) {
+                sourceLoaded(result.data, page, source.key)
+            } else {
+                loadFailed(source.key)
+            }
+        })
     }
 
     private fun loadProductHunt(page: Any) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    private fun loadDesignerNewsStories(page: Any) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    private fun loadDesignerNewsStories(page: Int) {
+        loadStoriesUseCase.invoke(page, this)
     }
 
-    private fun getNextPageIndex(key: String): Any {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    private fun loadStarted() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun onDataLoaded(data: List<out PlaidItem>) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    private fun getNextPageIndex(key: String): Int {
+        var nextPage = 1
+        if (pageIndexes.containsKey(key)) {
+            nextPage = pageIndexes[key]!! + 1
+        }
+        pageIndexes[key] = nextPage
+        return nextPage
     }
 }

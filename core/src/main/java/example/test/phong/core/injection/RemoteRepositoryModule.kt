@@ -6,8 +6,11 @@ import dagger.Module
 import dagger.Provides
 import example.test.phong.core.BuildConfig
 import example.test.phong.core.data.api.DenvelopingConverter
+import example.test.phong.core.data.login.AuthTokenLocalDataSource
 import example.test.phong.core.data.search.DribbbleSearchConverter
 import example.test.phong.core.data.search.DribbbleSearchService
+import example.test.phong.core.designernews.data.api.ClientAuthInterceptor
+import example.test.phong.core.designernews.data.api.DesignerNewsService
 import example.test.phong.core.producthunt.data.api.AuthInterceptor
 import example.test.phong.core.producthunt.data.api.ProductHuntService
 import okhttp3.OkHttpClient
@@ -50,17 +53,36 @@ class RemoteRepositoryModule {
 
     @Singleton
     @Provides
-    fun provideProductHuntService(loggingInterceptor: HttpLoggingInterceptor, gson: Gson, denvelopingConverter: DenvelopingConverter): ProductHuntService {
+    fun provideProductHuntService(loggingInterceptor: HttpLoggingInterceptor, gson: Gson, denvelopingConverter:
+    DenvelopingConverter, authTokenDataSource: AuthTokenLocalDataSource): ProductHuntService {
         val client = OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
-                .addInterceptor(AuthInterceptor(BuildConfig.PRODUCT_HUNT_DEVELOPER_TOKEN))
+                .addInterceptor(ClientAuthInterceptor(authTokenDataSource, BuildConfig.DESIGNER_NEWS_CLIENT_ID))
                 .build()
         return Retrofit.Builder()
                 .baseUrl(ProductHuntService.ENDPOINT)
                 .addConverterFactory(denvelopingConverter)
                 .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(CoroutineCallAdapterFactory())
                 .client(client)
                 .build()
                 .create(ProductHuntService::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideDesignerNewsService(loggingInterceptor: HttpLoggingInterceptor, gson: Gson, denvelopingConverter: DenvelopingConverter): DesignerNewsService {
+        val client = OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
+                .addInterceptor(AuthInterceptor(BuildConfig.PRODUCT_HUNT_DEVELOPER_TOKEN))
+                .build()
+        return Retrofit.Builder()
+                .baseUrl(DesignerNewsService.ENDPOINT)
+                .addConverterFactory(denvelopingConverter)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(CoroutineCallAdapterFactory())
+                .client(client)
+                .build()
+                .create(DesignerNewsService::class.java)
     }
 }

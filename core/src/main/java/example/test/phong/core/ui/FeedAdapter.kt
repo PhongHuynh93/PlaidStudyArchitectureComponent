@@ -19,6 +19,7 @@ import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.util.ViewPreloadSizeProvider
 import example.test.phong.core.R
+import example.test.phong.core.data.DataLoadingCallbacks
 import example.test.phong.core.data.DataLoadingSubject
 import example.test.phong.core.data.PlaidItem
 import example.test.phong.core.data.api.model.Shot
@@ -33,9 +34,8 @@ import example.test.phong.core.util.intentTo
 class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val columns: Int,
                   val pocketIsInstalled: Boolean, val shotPreloadSizeProvider: ViewPreloadSizeProvider<Shot>)
     : RecyclerView.Adapter<RecyclerView.ViewHolder>(),
-        DataLoadingSubject.DataLoadingCallbacks,
-        ListPreloader.PreloadModelProvider<Shot>
-{
+        DataLoadingCallbacks,
+        ListPreloader.PreloadModelProvider<Shot> {
 
     companion object {
         fun createSharedElementReenterCallback(context: Context): SharedElementCallback {
@@ -182,34 +182,6 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
                               )
     }
 
-    private fun openDesignerNewsStory(data: StoryViewHolder.TransitionData) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    private fun openTabDesignerNews(story: Story) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    private fun openDesignerNewstory(data: StoryViewHolder.TransitionData) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun dataStartedLoading() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun dataFinishedLoading() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getPreloadItems(position: Int): MutableList<Shot> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getPreloadRequestBuilder(item: Shot): RequestBuilder<*>? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     override fun getItemCount(): Int {
         return getDataItemCount() + if (showLoadingMore) 1 else 0
     }
@@ -244,6 +216,36 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
     fun getItemPosition(sharedShotId: Long): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
+
+
+    private fun openDesignerNewsStory(data: StoryViewHolder.TransitionData) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    private fun openTabDesignerNews(story: Story) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    private fun openDesignerNewstory(data: StoryViewHolder.TransitionData) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getPreloadItems(position: Int): MutableList<Shot> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getPreloadRequestBuilder(item: Shot): RequestBuilder<*>? {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun dataStartedLoading() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun dataFinishedLoading() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
 }
 
 class DribbbleShotHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

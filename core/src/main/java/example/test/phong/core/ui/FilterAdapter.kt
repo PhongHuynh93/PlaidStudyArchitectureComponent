@@ -16,21 +16,31 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
 import example.test.phong.core.R
 import example.test.phong.core.data.Source
+import example.test.phong.core.data.prefs.SourceManager
 import example.test.phong.core.ui.recyclerview.FilterSwipeDismissListener
 import example.test.phong.core.util.AnimUtils
 import example.test.phong.core.util.ColorUtils
 import example.test.phong.core.util.ViewUtils
+import javax.inject.Inject
 
-class FilterAdapter(private var context: Context, val filters: List<Source>) : RecyclerView.Adapter<FilterViewHolder>(), FilterSwipeDismissListener {
+class FilterAdapter @Inject constructor(private var context: Context, sourceManager: SourceManager) : RecyclerView
+.Adapter<FilterViewHolder>(), FilterSwipeDismissListener {
     companion object {
         private val FILTER_ICON_ENABLED_ALPHA = 179 // 70%
         private val FILTER_ICON_DISABLED_ALPHA = 51 // 20%
     }
 
+    val filters: List<Source>
+
     init {
         context = context.applicationContext
-
+        filters = sourceManager.getSources()
     }
+
+    private val callbacks: MutableList<FiltersChangedCallbacks> by lazy {
+        ArrayList<FiltersChangedCallbacks>()
+    }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FilterViewHolder {
         return FilterViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.filter_item, parent, false)).apply {
@@ -123,9 +133,14 @@ class FilterAdapter(private var context: Context, val filters: List<Source>) : R
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    fun registerFilterChangedCallback() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun registerFilterChangedCallback(callback: FiltersChangedCallbacks) {
+        callbacks.add(callback)
     }
+}
+
+interface FiltersChangedCallbacks {
+    fun onFilterChanged(changedFilter: Source)
+    fun onFilterRemoved(removed: Source)
 }
 
 class FilterHolderInfo : RecyclerView.ItemAnimator.ItemHolderInfo() {

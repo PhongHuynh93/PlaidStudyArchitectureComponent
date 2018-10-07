@@ -13,6 +13,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.core.view.GravityCompat
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -25,6 +26,7 @@ import example.test.phong.core.data.api.model.Shot
 import example.test.phong.core.designernews.DesignerNewsPrefs
 import example.test.phong.core.ui.FeedAdapter
 import example.test.phong.core.ui.FilterAdapter
+import example.test.phong.core.ui.FiltersChangedCallbacks
 import example.test.phong.core.ui.HomeGridItemAnimator
 import example.test.phong.core.ui.recyclerview.GridItemDividerDecoration
 import example.test.phong.core.ui.recyclerview.InfiniteScrollListener
@@ -35,6 +37,7 @@ import example.test.phong.core.util.intentTo
 import example.test.phong.plaidstudy.ui.recyclerview.FilterTouchHelperCallback
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.no_connection.*
+import timber.log.Timber
 import javax.inject.Inject
 
 class MainActivity : DaggerAppCompatActivity() {
@@ -117,7 +120,15 @@ class MainActivity : DaggerAppCompatActivity() {
         filters?.apply {
             adapter = filterAdapter
             itemAnimator = FilterAdapter.FilterAnimator()
-            filterAdapter.registerFilterChangedCallback()
+            filterAdapter.registerFilterChangedCallback(object: FiltersChangedCallbacks {
+                override fun onFilterChanged(changedFilter: Source) {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+
+                override fun onFilterRemoved(removed: Source) {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+            })
             val itemTouchHelper = ItemTouchHelper(FilterTouchHelperCallback(filterAdapter, this@MainActivity))
             itemTouchHelper.attachToRecyclerView(this)
         }
@@ -148,6 +159,10 @@ class MainActivity : DaggerAppCompatActivity() {
                 }
             }
         }))
+        lifecycle.addObserver(dataManager)
+        dataManager.remoteData.observe(this, Observer {
+            Timber.e("getting list data from BE $it")
+        })
     }
 
     override fun onActivityReenter(resultCode: Int, data: Intent?) {
