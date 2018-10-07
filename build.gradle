@@ -1,13 +1,43 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.2.60'
+    ext.kotlin_version = '1.2.61'
+    ext.versions = [
+            'compileSdk'        : 28,
+            'minSdk'            : 23,
+            'targetSdk'         : 28,
+            'constraintLayout'  : '1.1.2',
+            'coreKtx'           : '1.0.0-rc02',
+            'coroutines'        : '0.22.5',
+            'crashlytics'       : '2.9.4',
+            'espresso'          : '3.0.2',
+            'fabric'            : '1.25.4',
+            'firebase'          : '16.0.1',
+            'glide'             : '4.7.1',
+            'googleServices'    : '4.0.1',
+            'gson'              : '2.8.5',
+            'jsoup'             : '1.11.3',
+            'junit'             : '4.12',
+            'kotlin'            : '1.2.60',
+            'ktlint'            : '0.24.0',
+            'lifecycle'         : '2.0.0-beta01',
+            'mockito'           : '2.19.0',
+            'mockito_kotlin'    : '1.6.0',
+            'okhttp'            : '3.10.0',
+            'retrofit'          : '2.4.0',
+            'retrofitCoroutines': '1.0.0',
+            'room'              : '1.1.1',
+            'supportLibrary'    : '27.1.1',
+            'test_rules'        : '1.0.2',
+            'test_runner'       : '1.0.2',
+            'dagger_version'    : '2.16'
+    ]
     repositories {
         google()
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.0-beta04'
+        classpath 'com.android.tools.build:gradle:3.2.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong

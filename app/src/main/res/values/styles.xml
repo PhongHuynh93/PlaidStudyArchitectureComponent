@@ -90,6 +90,4 @@
         <item name="android:letterSpacing">0.01</item>
         <item name="lineHeightHint">24sp</item>
     </style>
-
-
 </resources>

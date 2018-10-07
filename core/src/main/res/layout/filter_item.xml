@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<example.test.phong.core.ui.widget.ForegroundLinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:foreground="?android:selectableItemBackground"
+    android:minHeight="?android:listPreferredItemHeightSmall"
+    android:orientation="horizontal"
+    android:padding="@dimen/padding_normal"
+    android:theme="@style/PlaidDarkOverlay">
+
+    <ImageView
+        android:id="@+id/filter_icon"
+        android:layout_width="@dimen/avatar_size"
+        android:layout_height="@dimen/avatar_size"
+        android:padding="@dimen/spacing_micro"
+        android:src="@drawable/filter_placeholder"
+    />
+
+    <example.test.phong.core.ui.widget.BaselineGridTextView
+        android:id="@+id/filter_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="@dimen/padding_normal"
+        android:ellipsize="end"
+        android:stateListAnimator="@animator/filter_active"
+        android:textAppearance="@style/TextAppearance.Filter"
+        tools:text="Popular Designer News"/>
+</example.test.phong.core.ui.widget.ForegroundLinearLayout>

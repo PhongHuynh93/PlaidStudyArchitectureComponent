@@ -1,4 +1,4 @@
-package example.test.phong.plaidstudy.ui.widget;
+package example.test.phong.core.ui.widget;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -8,7 +8,7 @@ import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
 import androidx.annotation.Nullable;
-import example.test.phong.plaidstudy.R;
+import example.test.phong.core.R;
 
 public class ForegroundLinearLayout extends LinearLayout {
     @Nullable

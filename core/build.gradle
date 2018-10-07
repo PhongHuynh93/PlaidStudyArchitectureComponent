@@ -1,9 +1,10 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 28
-
-
 
     defaultConfig {
         minSdkVersion 21
@@ -12,7 +13,12 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField 'String', 'DESIGNER_NEWS_CLIENT_ID', "\"${designer_news_client_id}\""
+        buildConfigField 'String',
+                'DESIGNER_NEWS_CLIENT_SECRET', "\"${designer_news_client_secret}\""
 
+        buildConfigField 'String',
+                'PRODUCT_HUNT_DEVELOPER_TOKEN', "\"${product_hunt_developer_token}\""
     }
 
     buildTypes {
@@ -27,8 +33,53 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'androidx.appcompat:appcompat:1.0.0-alpha1'
+    api 'androidx.appcompat:appcompat:1.0.0-rc01'
+    api "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    api 'androidx.constraintlayout:constraintlayout:1.1.2'
+    api 'androidx.recyclerview:recyclerview:1.0.0-rc01'
+    api "androidx.core:core-ktx:${versions.coreKtx}"
+    api 'com.jakewharton.timber:timber:4.7.1'
+
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.1.0-alpha3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha3'
+    androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha4'
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    // For dagger 2
+    api "com.google.dagger:dagger:${versions.dagger_version}"
+    api "com.google.dagger:dagger-android-support:${versions.dagger_version}"
+    kapt "com.google.dagger:dagger-compiler:${versions.dagger_version}"
+    kapt "com.google.dagger:dagger-android-processor:${versions.dagger_version}"
+
+    // glide
+    api "com.github.bumptech.glide:glide:${versions.glide}"
+    kapt "com.github.bumptech.glide:compiler:${versions.glide}"
+    api "com.github.bumptech.glide:okhttp3-integration:${versions.glide}"
+    api "com.github.bumptech.glide:recyclerview-integration:${versions.glide}"
+
+//    retrofit
+    api "com.squareup.retrofit2:retrofit:${versions.retrofit}"
+    api "com.squareup.retrofit2:converter-gson:${versions.retrofit}"
+    api "com.jakewharton.retrofit:retrofit2-kotlin-coroutines-experimental-adapter:" +
+            "${versions.retrofitCoroutines}"
+    testImplementation "com.squareup.retrofit2:retrofit-mock:${versions.retrofit}"
+    androidTestImplementation "com.squareup.retrofit2:retrofit-mock:${versions.retrofit}"
+    api "com.squareup.okhttp3:logging-interceptor:${versions.okhttp}"
+    api "org.jsoup:jsoup:${versions.jsoup}"
+
+    // life cycle
+    api "androidx.lifecycle:lifecycle-extensions:${versions.lifecycle}"
+
 }
+
+
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}
+
+androidExtensions {
+    experimental = true
+}
+
