@@ -10,6 +10,7 @@ import example.test.phong.core.data.Source
 import java.util.*
 import javax.inject.Inject
 import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 
 class SourceManager @Inject constructor(private val context: Context, private val prefs: SharedPreferences){
     companion object {
@@ -22,15 +23,15 @@ class SourceManager @Inject constructor(private val context: Context, private va
     fun getSources(): List<Source> {
         val sourceKeys = prefs.getStringSet(KEY_SOURCES, null)
         if (sourceKeys == null) {
-            setupDefaultSources(context, prefs.edit())
-            return getDefaultSources(context)
+            setupDefaultSources()
+            return getDefaultSources()
         }
         val sources = ArrayList<Source>(sourceKeys.size)
         for (sourceKey in sourceKeys) {
             if (sourceKey.startsWith(DribbbleSearchSource.DRIBBBLE_QUERY_PREFIX)) {
                 sources.add(DribbbleSearchSource(
-                        sourceKey.replace(DribbbleSearchSource.DRIBBBLE_QUERY_PREFIX, ""),
-                        prefs.getBoolean(sourceKey, false)))
+                        query = sourceKey.replace(DribbbleSearchSource.DRIBBBLE_QUERY_PREFIX, ""),
+                        active = prefs.getBoolean(sourceKey, false)))
             } else if (DesignerNewsV1SourceRemover.checkAndRemoveDesignerNewsRecentSource(sourceKey, prefs)) {
                 continue
             } else if (sourceKey.startsWith(DesignerNewsSearchSource.DESIGNER_NEWS_QUERY_PREFIX)) {
@@ -41,7 +42,7 @@ class SourceManager @Inject constructor(private val context: Context, private va
             } else if (DribbbleV1SourceRemover.checkAndRemove(sourceKey, prefs)) {
                 continue
             } else {
-                val defaultSource = getSource(context, sourceKey, prefs.getBoolean(sourceKey, false))
+                val defaultSource = getSource(sourceKey, prefs.getBoolean(sourceKey, false))
                 defaultSource?.let {
                     sources.add(it)
                 }
@@ -51,8 +52,8 @@ class SourceManager @Inject constructor(private val context: Context, private va
         return sources
     }
 
-    private fun getSource(context: Context, key: String, active: Boolean): Source? {
-        for (source in getDefaultSources(context)) {
+    private fun getSource(key: String, active: Boolean): Source? {
+        for (source in getDefaultSources()) {
             if (source.key == key) {
                 source.active = active
                 return source
@@ -61,11 +62,19 @@ class SourceManager @Inject constructor(private val context: Context, private va
         return null
     }
 
-    private fun setupDefaultSources(context: Context, edit: SharedPreferences.Editor?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    private fun setupDefaultSources() {
+        val editor = prefs.edit()
+        val defaultSources = getDefaultSources()
+        val keys = HashSet<String>(defaultSources.size)
+        for (source in defaultSources) {
+            keys.add(source.key)
+            editor.putBoolean(source.key, source.active)
+        }
+        editor.putStringSet(KEY_SOURCES, keys)
+        editor.apply()
     }
 
-    private fun getDefaultSources(context: Context): ArrayList<Source> {
+    private fun getDefaultSources(): ArrayList<Source> {
         val defaultSources = ArrayList<Source>(11)
         defaultSources.add(DesignerNewsSource(SOURCE_DESIGNER_NEWS_POPULAR, 100,
                                               context.getString(R.string.source_designer_news_popular), true))
