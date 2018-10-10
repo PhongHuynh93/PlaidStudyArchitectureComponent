@@ -262,6 +262,10 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
         notifyItemRemoved(getLoadingMoreItemPosition())
     }
 
+    fun addAndResort(it: List<PlaidItem>?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
 }
 
 class DribbbleShotHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

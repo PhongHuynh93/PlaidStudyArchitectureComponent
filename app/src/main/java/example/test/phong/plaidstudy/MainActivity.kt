@@ -7,11 +7,19 @@ import android.graphics.drawable.AnimatedVectorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
+import android.text.Annotation
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.SpannedString
+import android.text.style.ForegroundColorSpan
+import android.text.style.ImageSpan
 import android.transition.TransitionManager
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
@@ -120,7 +128,7 @@ class MainActivity : DaggerAppCompatActivity() {
         filters?.apply {
             adapter = filterAdapter
             itemAnimator = FilterAdapter.FilterAnimator()
-            filterAdapter.registerFilterChangedCallback(object: FiltersChangedCallbacks {
+            filterAdapter.registerFilterChangedCallback(object : FiltersChangedCallbacks {
                 override fun onFilterChanged(changedFilter: Source) {
                     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
                 }
@@ -162,7 +170,8 @@ class MainActivity : DaggerAppCompatActivity() {
         lifecycle.addObserver(dataManager)
         dataManager.remoteData.observe(this, Observer {
             Timber.e("getting list data from BE $it")
-            TODO("not implemented")
+            mainAdapter.addAndResort(it)
+            checkEmptyState()
         })
     }
 
@@ -196,7 +205,9 @@ class MainActivity : DaggerAppCompatActivity() {
         designerNewsLogin?.let {
             designerNewsLogin.setTitle(if (designerNewsPref.isLoggedIn()) {
                 R.string.designer_news_log_out
-            } else { R.string.designer_news_login})
+            } else {
+                R.string.designer_news_login
+            })
         }
         return true
     }
@@ -274,7 +285,19 @@ class MainActivity : DaggerAppCompatActivity() {
     }
 
     private fun checkEmptyState() {
-
+        if (mainAdapter.getDataItemCount() == 0) {
+            // if grid is empty check whether we're loading or if no filters are selected
+//            if (filterAdapter.getEnabledSourcesCount() > 0) {
+//
+//            } else {
+//
+//            }
+            TODO("when no data, set no data image")
+            toolbar.translationZ = 0f
+        } else {
+            empty.visibility = View.GONE
+            setNoFiltersEmptyTextVisibility(View.GONE)
+        }
     }
 
     private fun showPostingProgress() {
@@ -282,7 +305,44 @@ class MainActivity : DaggerAppCompatActivity() {
     }
 
     private fun setNoFiltersEmptyTextVisibility(visibility: Int) {
-
+        if (visibility == View.VISIBLE) {
+            if (stub_no_filters == null) {
+                // create no filter empty text
+                val noFilterTextView = stub_no_filters.inflate() as TextView
+                val emptyText = getText(R.string.no_filters_selected) as SpannedString
+                val ssb = SpannableStringBuilder(emptyText)
+                val annotations = emptyText.getSpans(0, emptyText.length, Annotation::class.java)
+                for (annotation in annotations) {
+                    if (annotation.key.equals("src")) {
+                        // image span markup
+                        val name = annotation.value
+                        val id = resources.getIdentifier(name, null, packageName)
+                        if (id == 0) continue
+                        ssb.setSpan(ImageSpan(this, id, ImageSpan.ALIGN_BASELINE),
+                                    emptyText.getSpanStart(annotation),
+                                    emptyText.getSpanEnd(annotation),
+                                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    } else if (annotation.key.equals("foregroundColor")) {
+                        // foreground color span markup
+                        val name = annotation.value
+                        val id = resources.getIdentifier(name, null, packageName)
+                        if (id == 0) continue
+                        ssb.setSpan(ForegroundColorSpan(ContextCompat.getColor(this, id)),
+                                    emptyText.getSpanStart(annotation),
+                                    emptyText.getSpanEnd(annotation),
+                                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    }
+                }
+                noFilterTextView.text = ssb
+                noFilterTextView.setOnClickListener {
+                    drawer.openDrawer(GravityCompat.END)
+                }
+            }
+            stub_no_filters.visibility = visibility
+        } else if (stub_no_filters != null) {
+            // hide it
+            stub_no_filters.visibility = visibility
+        }
     }
 
     private fun setupTaskDescription() {
