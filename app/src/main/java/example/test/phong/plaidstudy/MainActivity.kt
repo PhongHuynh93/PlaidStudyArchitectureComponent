@@ -162,6 +162,7 @@ class MainActivity : DaggerAppCompatActivity() {
         lifecycle.addObserver(dataManager)
         dataManager.remoteData.observe(this, Observer {
             Timber.e("getting list data from BE $it")
+            TODO("not implemented")
         })
     }
 

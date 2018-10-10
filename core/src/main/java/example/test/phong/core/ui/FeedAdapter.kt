@@ -59,7 +59,7 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
     private var layoutInflater: LayoutInflater = LayoutInflater.from(host)
     private val initialGifBadgeColor: Int
     private val shotLoadingPlaceholders: Array<ColorDrawable?>
-    private val showLoadingMore: Boolean = false
+    private var showLoadingMore: Boolean = false
     private var items: List<PlaidItem>
 
     init {
@@ -82,21 +82,25 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
             0x40ffffff
 
         items = ArrayList()
+
+        dataLoading.registerCallback(this)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        when (viewType) {
+        TODO("register callback from datamanager")
+
+        return when (viewType) {
             TYPE_DESIGNER_NEWS_STORY -> {
-                return createDesignerNewsStoryHolder(parent)
+                createDesignerNewsStoryHolder(parent)
             }
             TYPE_DRIBBBLE_SHOT -> {
-                return createDribbbleShotHolder(parent)
+                createDribbbleShotHolder(parent)
             }
             TYPE_PRODUCT_HUNT_POST -> {
-                return createProductHuntStoryHolder(parent)
+                createProductHuntStoryHolder(parent)
             }
             TYPE_LOADING_MORE -> {
-                return LoadingMoreHelper(layoutInflater.inflate(R.layout.infinite_loading, parent, false))
+                LoadingMoreHelper(layoutInflater.inflate(R.layout.infinite_loading, parent, false))
             }
             else -> throw IllegalStateException()
         }
@@ -239,11 +243,23 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
     }
 
     override fun dataStartedLoading() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (showLoadingMore) return
+        showLoadingMore = true
+        notifyItemChanged(getLoadingMoreItemPosition())
+    }
+
+    private fun getLoadingMoreItemPosition(): Int {
+        return if (showLoadingMore) {
+            itemCount - 1
+        } else {
+            RecyclerView.NO_POSITION
+        }
     }
 
     override fun dataFinishedLoading() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (!showLoadingMore) return
+        showLoadingMore = false
+        notifyItemRemoved(getLoadingMoreItemPosition())
     }
 
 }
