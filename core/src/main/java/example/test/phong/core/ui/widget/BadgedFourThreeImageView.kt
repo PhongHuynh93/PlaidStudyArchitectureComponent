@@ -63,7 +63,7 @@ class BadgedFourThreeImageView(context: Context, attributeSet: AttributeSet) : F
                       Rect(0, 0, width, height),
                       badgePadding,
                       badgePadding,
-                      badgeBounds
+                      badBounds
                      )
         badge.bounds = badBounds
         badgeBoundsSet = true

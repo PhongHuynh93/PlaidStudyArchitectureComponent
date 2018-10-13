@@ -287,12 +287,15 @@ class MainActivity : DaggerAppCompatActivity() {
     private fun checkEmptyState() {
         if (mainAdapter.getDataItemCount() == 0) {
             // if grid is empty check whether we're loading or if no filters are selected
-//            if (filterAdapter.getEnabledSourcesCount() > 0) {
-//
-//            } else {
-//
-//            }
-            TODO("when no data, set no data image")
+            if (filterAdapter.getEnabledSourcesCount() > 0) {
+                if (connected) {
+                    empty.visibility = View.VISIBLE
+                    setNoFiltersEmptyTextVisibility(View.GONE)
+                }
+            } else {
+                empty.visibility = View.GONE
+                setNoFiltersEmptyTextVisibility(View.VISIBLE)
+            }
             toolbar.translationZ = 0f
         } else {
             empty.visibility = View.GONE

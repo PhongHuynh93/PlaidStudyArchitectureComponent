@@ -36,10 +36,6 @@ class DataManager @Inject constructor(
         }
     }
 
-    override fun isDataLoading(): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     override fun sourceLoaded(data: List<PlaidItem>?, page: Int, source: String) {
         loadFinished()
         if (data?.isNotEmpty() == true && sourceIsEnabled(source)) {

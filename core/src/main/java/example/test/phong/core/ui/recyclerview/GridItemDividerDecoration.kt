@@ -29,8 +29,8 @@ class GridItemDividerDecoration (@Dimension private val dividerSize: Int, @Color
             val child = parent.getChildAt(i)
             val holder = parent.getChildViewHolder(child)
             if (holder is Divided) {
-                val right = lm.getDecoratedRight(child) as Float
-                val bottom = lm.getDecoratedBottom(child) as Float
+                val right = lm.getDecoratedRight(child).toFloat()
+                val bottom = lm.getDecoratedBottom(child).toFloat()
                 c.drawRect(lm.getDecoratedLeft(child).toFloat(), bottom - dividerSize, right, bottom, paint)
                 c.drawRect(right - dividerSize, lm.getDecoratedTop(child).toFloat(), right, bottom - dividerSize, paint)
             }

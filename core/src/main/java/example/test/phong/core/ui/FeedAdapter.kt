@@ -22,14 +22,22 @@ import example.test.phong.core.R
 import example.test.phong.core.data.DataLoadingCallbacks
 import example.test.phong.core.data.DataLoadingSubject
 import example.test.phong.core.data.PlaidItem
+import example.test.phong.core.data.PlaidItemSorting
 import example.test.phong.core.data.api.model.Shot
 import example.test.phong.core.data.pocket.PocketUtils
+import example.test.phong.core.data.prefs.SourceManager
 import example.test.phong.core.data.stories.model.Story
+import example.test.phong.core.designernews.domain.StoryWeigher
+import example.test.phong.core.dribbble.data.api.ShotWeigher
+import example.test.phong.core.producthunt.data.api.PostWeigher
+import example.test.phong.core.producthunt.data.api.model.Post
 import example.test.phong.core.producthunt.ui.ProductHuntPostHolder
 import example.test.phong.core.ui.stories.StoryViewHolder
 import example.test.phong.core.ui.widget.BadgedFourThreeImageView
 import example.test.phong.core.util.Activities
 import example.test.phong.core.util.intentTo
+import example.test.phong.core.util.withNotNullNorEmpty
+import java.util.*
 
 class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val columns: Int,
                   val pocketIsInstalled: Boolean, val shotPreloadSizeProvider: ViewPreloadSizeProvider<Shot>)
@@ -43,9 +51,6 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
             val shotBackgroundTransitionName = context.getString(R.string.transition_shot_background)
 
             return object : SharedElementCallback() {
-                override fun onMapSharedElements(names: MutableList<String>?, sharedElements: MutableMap<String, View>?) {
-                    super.onMapSharedElements(names, sharedElements)
-                }
             }
         }
 
@@ -60,7 +65,7 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
     private val initialGifBadgeColor: Int
     private val shotLoadingPlaceholders: Array<ColorDrawable?>
     private var showLoadingMore: Boolean = false
-    private var items: List<PlaidItem>
+    private var items: MutableList<PlaidItem>
 
     init {
         // get the dribbble shot placeholder colors & badge color from the theme
@@ -87,8 +92,6 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        TODO("register callback from datamanager")
-
         return when (viewType) {
             TYPE_DESIGNER_NEWS_STORY -> {
                 createDesignerNewsStoryHolder(parent)
@@ -200,6 +203,20 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
         }
     }
 
+    override fun getItemViewType(position: Int): Int {
+        if (position < getDataItemCount() && getDataItemCount() > 0) {
+            val item = getItem(position)
+            if (item is Story) {
+                return TYPE_DESIGNER_NEWS_STORY
+            } else if (item is Shot) {
+                return TYPE_DRIBBBLE_SHOT
+            } else if (item is Post) {
+                return TYPE_PRODUCT_HUNT_POST
+            }
+        }
+        return TYPE_LOADING_MORE
+    }
+
 
     private fun getItem(position: Int): PlaidItem? {
         if (position < 0 || (position >= items.size)) return null
@@ -235,7 +252,11 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
     }
 
     override fun getPreloadItems(position: Int): MutableList<Shot> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val item = getItem(position)
+        if (item is Shot) {
+            return Collections.singletonList(item)
+        }
+        return Collections.emptyList()
     }
 
     override fun getPreloadRequestBuilder(item: Shot): RequestBuilder<*>? {
@@ -262,8 +283,119 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
         notifyItemRemoved(getLoadingMoreItemPosition())
     }
 
-    fun addAndResort(it: List<PlaidItem>?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun addAndResort(items: List<PlaidItem>?) {
+        items.withNotNullNorEmpty {
+            weighItems(this)
+            deduplicateAndAdd(this)
+            sort()
+            expandPopularItems()
+            notifyDataSetChanged()
+        }
+
+    }
+
+    private fun expandPopularItems() {
+        // for now just expand the first dribbble image per page which should be
+        // the most popular according to our weighing & sorting
+        val expandedPositions = ArrayList<Int>()
+        var page = -1
+        val count = items.size
+        for (i in 0 until count) {
+            val item = getItem(i)
+            if (item is Shot && item.page > page) {
+                item.colspan = columns
+                page = item.page
+                expandedPositions.add(i)
+            } else {
+                item!!.colspan = 1
+            }
+        }
+
+        // make sure that any expanded items are at the start of a row
+        // so that we don't leave any gaps in the grid
+        for (expandedPos in expandedPositions.indices) {
+            val pos = expandedPositions[expandedPos]
+            val extraSpannedSpaces = expandedPos * (columns - 1)
+            val rowPosition = (pos + extraSpannedSpaces) % columns
+            if (rowPosition != 0) {
+                val swapWith = pos + (columns - rowPosition)
+                if (swapWith < items.size) {
+                    Collections.swap(items, pos, swapWith)
+                }
+            }
+        }
+    }
+
+    private val comparator: Comparator<in PlaidItem>? by lazy {
+        PlaidItemSorting.PlaidItemComparator()
+    }
+
+    private fun sort() {
+        Collections.sort(items, comparator)
+    }
+
+    private fun deduplicateAndAdd(newItems: List<PlaidItem>) {
+        val count = getDataItemCount()
+        for (newItem in newItems) {
+            var add = true
+            for (i in 0 until count) {
+                val existingItem = getItem(i)
+                if (existingItem != null) {
+                    if (existingItem.equals(newItem)) {
+                        add = false
+                        break
+                    }
+                }
+
+            }
+            if (add) {
+                add(newItem)
+            }
+        }
+    }
+
+    private fun add(item: PlaidItem) {
+        items.add(item)
+    }
+
+    private val naturalOrderWeigher: PlaidItemSorting.NaturalOrderWeigher by lazy {
+        PlaidItemSorting.NaturalOrderWeigher()
+    }
+
+    private val shotWeigher: ShotWeigher by lazy {
+        ShotWeigher()
+    }
+
+    private val storyWeigher: StoryWeigher by lazy {
+        StoryWeigher()
+    }
+
+    private val postWeigher: PostWeigher by lazy {
+        PostWeigher()
+    }
+
+    private fun weighItems(newItems: List<PlaidItem>) {
+        var weigher: PlaidItemSorting.PlaidItemGroupWeigher<out PlaidItem>? = null
+        when (newItems[0].dataSource) {
+            // some sources should just use the natural order i.e. as returned by the API as users
+            // have an expectation about the order they appear in
+            SourceManager.SOURCE_PRODUCT_HUNT -> {
+                weigher = naturalOrderWeigher
+            }
+            else ->
+                // otherwise use our own weight calculation. We prefer this as it leads to a less
+                // regular pattern of items in the grid
+                when {
+                    newItems[0] is Shot -> weigher = shotWeigher
+                    newItems[0] is Story -> {
+                        weigher = storyWeigher
+                    }
+                    newItems[0] is Post -> {
+                        weigher = postWeigher
+                    }
+                }
+        }
+        weigher?.weigh(newItems as List<Nothing>)
     }
 
 }
@@ -274,5 +406,4 @@ class DribbbleShotHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 }
 
 
-class LoadingMoreHelper(itemview: View) : RecyclerView.ViewHolder(itemview) {
-}
+class LoadingMoreHelper(itemview: View) : RecyclerView.ViewHolder(itemview)

@@ -136,6 +136,15 @@ class FilterAdapter @Inject constructor(private var context: Context, sourceMana
     fun registerFilterChangedCallback(callback: FiltersChangedCallbacks) {
         callbacks.add(callback)
     }
+
+    fun getEnabledSourcesCount(): Int {
+        var count = 0
+        for (source in filters) {
+            if (source.active)
+                count++
+        }
+        return count
+    }
 }
 
 interface FiltersChangedCallbacks {
