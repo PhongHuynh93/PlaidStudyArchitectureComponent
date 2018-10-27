@@ -17,6 +17,8 @@ import android.transition.TransitionManager
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -41,6 +43,7 @@ import example.test.phong.core.ui.recyclerview.InfiniteScrollListener
 import example.test.phong.core.util.Activities
 import example.test.phong.core.util.Activities.Dribbble.Shot.RESULT_EXTRA_SHOT_ID
 import example.test.phong.core.util.ConnectivityObserver
+import example.test.phong.core.util.ViewUtils
 import example.test.phong.core.util.intentTo
 import example.test.phong.plaidstudy.ui.recyclerview.FilterTouchHelperCallback
 import kotlinx.android.synthetic.main.activity_main.*
@@ -119,9 +122,55 @@ class MainActivity : DaggerAppCompatActivity() {
             itemAnimator = HomeGridItemAnimator()
         }
 
-        //        drawer.setOnApplyWindowInsetsListener { v, insets ->
-        //
-        //        }
+        // drawer layout treats fitsSystemWindows specially so we have to handle insets ourselves
+        drawer.setOnApplyWindowInsetsListener { v, insets ->
+            val lpToolbar = toolbar.layoutParams as ViewGroup.MarginLayoutParams
+            lpToolbar.topMargin += insets.systemWindowInsetTop
+            lpToolbar.leftMargin += insets.systemWindowInsetLeft
+            lpToolbar.rightMargin += insets.systemWindowInsetRight
+            toolbar.layoutParams = lpToolbar
+            insets.consumeSystemWindowInsets()
+
+            // inset the grid top by statusbar+toolbar & the bottom by the navbar (don't clip)
+            grid.setPadding(
+                    grid.paddingLeft + insets.systemWindowInsetLeft, // landscape
+                    insets.systemWindowInsetTop + ViewUtils.getActionBarSize(this@MainActivity),
+                    grid.paddingRight + insets.systemWindowInsetRight, // landscape
+                    grid.paddingBottom + insets.systemWindowInsetBottom)
+
+            // inset the fab for the navbar
+            val lpFab = fab.layoutParams as ViewGroup.MarginLayoutParams
+            lpFab.bottomMargin += insets.systemWindowInsetBottom // portrait
+            lpFab.rightMargin += insets.systemWindowInsetRight // landscape
+            fab.layoutParams = lpFab
+
+            val lpPosting = stub_posting_progress.layoutParams as ViewGroup.MarginLayoutParams
+            lpPosting.bottomMargin += insets.systemWindowInsetBottom // portrait
+            lpPosting.rightMargin += insets.systemWindowInsetRight // landscape
+            stub_posting_progress.layoutParams = lpPosting
+
+            // we place a background behind the status bar to combine with it's semi-transparent
+            // color to get the desired appearance.  Set it's height to the status bar height
+            val lpStatus = status_bar_background.layoutParams as FrameLayout.LayoutParams
+            lpStatus.height = insets.systemWindowInsetTop
+            status_bar_background.layoutParams = lpStatus
+
+            // inset the filters list for the status bar / navbar
+            // need to set the padding end for landscape case
+            val ltr = filters.layoutDirection == View.LAYOUT_DIRECTION_LTR
+            filters.setPaddingRelative(filters.paddingStart,
+                                       filters.paddingTop + insets.systemWindowInsetTop,
+                                       filters.paddingEnd + if (ltr)
+                                               insets.systemWindowInsetRight
+                                           else
+                                               0,
+                                       filters.paddingBottom + insets.systemWindowInsetBottom)
+
+            // clear this listener so insets aren't re-applied
+            drawer.setOnApplyWindowInsetsListener(null)
+
+            insets.consumeSystemWindowInsets()
+        }
 
         // init drawer rcv
         setupTaskDescription()
@@ -130,7 +179,7 @@ class MainActivity : DaggerAppCompatActivity() {
             itemAnimator = FilterAdapter.FilterAnimator()
             filterAdapter.registerFilterChangedCallback(object : FiltersChangedCallbacks {
                 override fun onFilterChanged(changedFilter: Source) {
-                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
                 }
 
                 override fun onFilterRemoved(removed: Source) {
