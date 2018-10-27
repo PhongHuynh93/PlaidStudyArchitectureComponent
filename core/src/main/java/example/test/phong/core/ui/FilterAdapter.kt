@@ -21,20 +21,22 @@ import example.test.phong.core.ui.recyclerview.FilterSwipeDismissListener
 import example.test.phong.core.util.AnimUtils
 import example.test.phong.core.util.ColorUtils
 import example.test.phong.core.util.ViewUtils
+import example.test.phong.core.util.withNotNullNorEmpty
 import javax.inject.Inject
 
-class FilterAdapter @Inject constructor(private var context: Context, sourceManager: SourceManager) : RecyclerView
+class FilterAdapter @Inject constructor(private var context: Context, private var sourceManager: SourceManager) :
+        RecyclerView
 .Adapter<FilterViewHolder>(), FilterSwipeDismissListener {
     companion object {
         private val FILTER_ICON_ENABLED_ALPHA = 179 // 70%
         private val FILTER_ICON_DISABLED_ALPHA = 51 // 20%
     }
 
-    val filters: List<Source>
+    val filters: MutableList<Source>
 
     init {
         context = context.applicationContext
-        filters = sourceManager.getSources()
+        filters = sourceManager.getSources().toMutableList()
     }
 
     private val callbacks: MutableList<FiltersChangedCallbacks> by lazy {
@@ -59,9 +61,9 @@ class FilterAdapter @Inject constructor(private var context: Context, sourceMana
 
     class FilterAnimator : DefaultItemAnimator() {
         companion object {
-            val FILTER_ENABLED = 1
-            val FILTER_DISABLED = 2
-            val HIGHLIGHT = 3
+            const val FILTER_ENABLED = 1
+            const val FILTER_DISABLED = 2
+            const val HIGHLIGHT = 3
         }
 
         override fun canReuseUpdatedViewHolder(viewHolder: RecyclerView.ViewHolder): Boolean {
@@ -85,24 +87,28 @@ class FilterAdapter @Inject constructor(private var context: Context, sourceMana
         override fun animateChange(oldHolder: RecyclerView.ViewHolder, newHolder: RecyclerView.ViewHolder, preInfo: ItemHolderInfo, postInfo: ItemHolderInfo): Boolean {
             if (newHolder is FilterViewHolder && preInfo is FilterHolderInfo) {
                 if (preInfo.doEnable || preInfo.doDisable) {
-                    ObjectAnimator.ofInt(newHolder.filterIcon, ViewUtils.IMAGE_ALPHA, if (preInfo.doEnable)
-                        FILTER_ICON_ENABLED_ALPHA
-                    else
-                        FILTER_ICON_DISABLED_ALPHA).apply {
-                        duration = 300L
-                        interpolator = AnimUtils.getFastOutSlowInInterpolator(newHolder.itemView.context)
-                        addListener {
-                            doOnStart {
-                                dispatchChangeStarting(newHolder, false)
-                                newHolder.itemView.setHasTransientState(true)
+                    ObjectAnimator.ofInt(
+                            newHolder.filterIcon,
+                            ViewUtils.IMAGE_ALPHA,
+                            if (preInfo.doEnable)
+                                FILTER_ICON_ENABLED_ALPHA
+                            else
+                                FILTER_ICON_DISABLED_ALPHA)
+                            .apply {
+                                duration = 300L
+                                interpolator = AnimUtils.getFastOutSlowInInterpolator(newHolder.itemView.context)
+                                addListener {
+                                    doOnStart {
+                                        dispatchChangeStarting(newHolder, false)
+                                        newHolder.itemView.setHasTransientState(true)
+                                    }
+                                    doOnEnd {
+                                        newHolder.itemView.setHasTransientState(false)
+                                        dispatchChangeFinished(newHolder, false)
+                                    }
+                                }
+                                start()
                             }
-                            doOnEnd {
-                                newHolder.itemView.setHasTransientState(true)
-                                dispatchChangeFinished(newHolder, false)
-                            }
-                        }
-                        start()
-                    }
                 } else if (preInfo.doHighLight) {
                     val highlightColor = ContextCompat.getColor(newHolder.itemView.context, R.color.accent)
                     val fadeFromTo = ColorUtils.modifyAlpha(highlightColor, 0)
@@ -130,7 +136,26 @@ class FilterAdapter @Inject constructor(private var context: Context, sourceMana
     }
 
     override fun onItemDissmiss(position: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val removing = filters[position]
+        if (removing.isSwipeDismissable()) {
+            removeFilter(removing)
+        }
+    }
+
+    private fun removeFilter(removing: Source) {
+        val position = filters.indexOf(removing)
+        filters.removeAt(position)
+        notifyItemRemoved(position)
+        dispatchFilterRemoved(removing)
+        sourceManager.removeSource(removing)
+    }
+
+    private fun dispatchFilterRemoved(filter: Source) {
+        callbacks.withNotNullNorEmpty {
+            for (callback in callbacks) {
+                callback.onFilterRemoved(filter)
+            }
+        }
     }
 
     fun registerFilterChangedCallback(callback: FiltersChangedCallbacks) {

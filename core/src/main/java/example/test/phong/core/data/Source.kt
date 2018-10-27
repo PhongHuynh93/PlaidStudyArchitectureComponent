@@ -11,6 +11,10 @@ open class Source(val key: String, val sortOrder: Int, val name: String, @Drawab
         }
     }
 
+    fun isSwipeDismissable(): Boolean {
+        return false
+    }
+
     companion object {
 
     }

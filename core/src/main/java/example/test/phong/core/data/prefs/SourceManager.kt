@@ -2,6 +2,7 @@ package example.test.phong.core.data.prefs
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import example.test.phong.core.R
 import example.test.phong.core.data.DesignerNewsSearchSource
 import example.test.phong.core.data.DesignerNewsSource
@@ -14,10 +15,20 @@ import kotlin.collections.HashSet
 
 class SourceManager @Inject constructor(private val context: Context, private val prefs: SharedPreferences){
     companion object {
+
         val SOURCE_DESIGNER_NEWS_POPULAR = "SOURCE_DESIGNER_NEWS_POPULAR"
         val SOURCE_PRODUCT_HUNT = "SOURCE_PRODUCT_HUNT"
         val SOURCES_PREF = "SOURCES_PREF"
         val KEY_SOURCES = "KEY_SOURCES"
+    }
+
+    fun removeSource(source: Source) {
+        prefs.edit {
+            val sourceKeys = prefs.getStringSet(KEY_SOURCES, null)
+            sourceKeys!!.remove(source.key)
+            putStringSet(KEY_SOURCES, sourceKeys)
+            remove(source.key)
+        }
     }
 
     fun getSources(): List<Source> {
