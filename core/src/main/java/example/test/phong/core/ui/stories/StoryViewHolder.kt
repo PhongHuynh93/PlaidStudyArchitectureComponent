@@ -116,6 +116,19 @@ class StoryViewHolder(itemView: View,
         }
     }
 
+    fun createStoryCommentReturnAnimator(): Animator {
+        val animator = AnimatorSet()
+        animator.playTogether(ObjectAnimator.ofFloat(pocket, View.ALPHA, 0f, 1f),
+                             ObjectAnimator.ofFloat(comments, View.ALPHA, 0f, 1f))
+        animator.duration = 120L
+        animator.interpolator = AnimUtils.getLinearOutSlowInInterpolator(itemView.context)
+        animator.doOnCancel {
+            pocket.alpha = 1f
+            comments.alpha = 1f
+        }
+        return animator
+    }
+
     data class TransitionData(
             val story: Story,
             val position: Int,

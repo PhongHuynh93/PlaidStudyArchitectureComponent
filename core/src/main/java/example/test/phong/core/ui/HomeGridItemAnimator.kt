@@ -67,7 +67,22 @@ class HomeGridItemAnimator(): SlideInItemAnimator() {
     }
 
     private fun animateStoryCommentReturn(holder: StoryViewHolder) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        endAnimation(holder)
+        holder.createStoryCommentReturnAnimator().apply {
+            doOnStart {
+                dispatchChangeStarting(holder, false)
+            }
+            doOnEnd {
+                runningStoryCommentsReturn = null
+                dispatchChangeFinished(holder, false)
+            }
+            doOnCancel {
+                runningStoryCommentsReturn = null
+                dispatchChangeFinished(holder, false)
+            }
+            runningStoryCommentsReturn = Pair.create(holder, this)
+            start()
+        }
     }
 
     private fun animateAddToPocket(holder: StoryViewHolder) {

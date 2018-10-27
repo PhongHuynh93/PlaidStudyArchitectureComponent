@@ -50,7 +50,17 @@ class FeedAdapter(val host: Activity, val dataLoading: DataLoadingSubject, val c
             val shotTransitionName = context.getString(R.string.transition_shot)
             val shotBackgroundTransitionName = context.getString(R.string.transition_shot_background)
 
+            // manual map shared element
             return object : SharedElementCallback() {
+                override fun onMapSharedElements(names: MutableList<String>?, sharedElements: MutableMap<String, View>?) {
+                    if (sharedElements!!.size != names!!.size) {
+                        // could not map the background
+                        val sharedShot = sharedElements[shotTransitionName]
+                        if (sharedShot != null) {
+                            sharedElements[shotBackgroundTransitionName] = sharedShot
+                        }
+                    }
+                }
             }
         }
 
